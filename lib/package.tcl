@@ -23,6 +23,7 @@ proc ::pkgtools::init {dir name {testcmd {}} {noc_file {}}} {
 		foreach libfile [list \
 			[file join $dir [pkgtools::architecture] $libpattern] \
 			[file join $dir build $libpattern] \
+			[file join $dir win $libpattern] \
 			[file join $dir $libpattern] \
 			[file join $dir .. $libpattern]
 		] {
