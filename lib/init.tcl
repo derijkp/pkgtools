@@ -21,3 +21,19 @@ set ::auto_index(::pkgtools::install) [list source [file join $::pkgtools::dir l
 set ::auto_index(::pkgtools::uninstall) [list source [file join $::pkgtools::dir lib buildtools.tcl]]
 set ::auto_index(::pkgtools::version) [list source [file join $::pkgtools::dir lib buildtools.tcl]]
 
+proc pkgtools::startdir {} {
+	if {[info exists ::pkgtools::startdir]} {
+		return $::pkgtools::startdir
+	}
+	set script [file normalize [info script]]
+	if {"$script"==""} {
+		set ::pkgtools::startdir [file normalize .]
+	} else {
+		if {"$::tcl_platform(platform)"=="unix"} {
+			while 1 {
+				if {[catch {set script [file normalize [file readlink $script]]}]} break
+			}
+		}
+		set ::pkgtools::startdir [file dir $script]
+	}
+}
