@@ -9,7 +9,7 @@ proc pkgtools::architecture {} {
 	}
 }
 
-proc ::pkgtools::init {dir name {testcmd {}} {noc_file {}}} {
+proc ::pkgtools::init {dir name {testcmd {}} {noc_file {}} {packagename {}}} {
 	global tcl_platform noc
 	#
 	# Try to find the compiled library in several places
@@ -36,12 +36,18 @@ proc ::pkgtools::init {dir name {testcmd {}} {noc_file {}}} {
 		#
 		if [file exists $libfile] {
 			if {"[info commands $testcmd]" == ""} {
-				namespace eval :: [list load $libfile]
+				if {$packagename eq ""} {
+					namespace eval :: [list load $libfile]
+				} else {
+					namespace eval :: [list load $libfile $packagename]
+				}
 			}
 		} else {
-			set noc 1
 			if {![string equal $noc_file ""]} {
+				set noc 1
 				source [file join ${dir} $noc_file]
+			} else {
+				error "library not found"
 			}
 		}
 	}
