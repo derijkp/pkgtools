@@ -81,9 +81,12 @@ proc ::pkgtools::version {{argv {}}} {
 		set c [read $f]
 		close $f
 		# regexp {\npackage ifneeded [^ ]+ ([^ ]+)} $c temp version
-		regexp {MAJOR_VERSION=([^ \n]+)} $c temp majorversion
-		regexp {MINOR_VERSION=([^ \n]+)} $c temp minorversion
-		regexp {PATCHLEVEL=([^ \n]*)} $c temp patchlevel
+		if {[regexp {MAJOR_VERSION=([^ \n]+)} $c temp majorversion]} {
+			regexp {MINOR_VERSION=([^ \n]+)} $c temp minorversion
+			regexp {PATCHLEVEL=([^ \n]*)} $c temp patchlevel
+		} else {
+			regexp {AC_INIT\(\[.*\], *\[([^.]+)\.([^.]+)\.([^.]+)\]\)} $c temp majorversion minorversion patchlevel
+		}
 	} elseif {[file exists $srcdir/init.tcl]} {
 		set f [open $srcdir/init.tcl]
 		set c [read $f]
