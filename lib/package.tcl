@@ -9,31 +9,37 @@ proc pkgtools::architecture {} {
 	}
 }
 
+proc ::pkgtools::findlib {dir name} {
+	global tcl_platform noc
+	if {"$tcl_platform(platform)" == "windows"} {
+		set libpattern \{lib,\}$name\[0-9\]*[info sharedlibextension]
+	} else {
+		set libpattern lib${name}\[0-9\]*[info sharedlibextension]
+	}
+	foreach libfile [list \
+		[file join $dir [pkgtools::architecture] $libpattern] \
+		[file join $dir build $libpattern] \
+		[file join $dir win $libpattern] \
+		[file join $dir $libpattern] \
+		[file join $dir .. $libpattern]
+	] {
+		set libfile [lindex [glob -nocomplain $libfile] 0]
+		if [file exists $libfile] {break}
+	}
+	return $libfile
+}
+
 proc ::pkgtools::init {dir name {testcmd {}} {noc_file {}} {packagename {}}} {
 	global tcl_platform noc
 	#
 	# Try to find the compiled library in several places
 	#
 	if {[string equal $testcmd ""] || ![string equal [info commands $testcmd] $testcmd]} {
-		if {"$tcl_platform(platform)" == "windows"} {
-			set libpattern \{lib,\}$name\[0-9\]*[info sharedlibextension]
-		} else {
-			set libpattern lib${name}\[0-9\]*[info sharedlibextension]
-		}
-		foreach libfile [list \
-			[file join $dir [pkgtools::architecture] $libpattern] \
-			[file join $dir build $libpattern] \
-			[file join $dir win $libpattern] \
-			[file join $dir $libpattern] \
-			[file join $dir .. $libpattern]
-		] {
-			set libfile [lindex [glob -nocomplain $libfile] 0]
-			if [file exists $libfile] {break}
-		}
 		#
 		# Load the shared library if present
 		# If not, Tcl code will be loaded when necessary
 		#
+		set libfile [::pkgtools::findlib $dir $name]
 		if [file exists $libfile] {
 			if {"[info commands $testcmd]" == ""} {
 				if {$packagename eq ""} {
