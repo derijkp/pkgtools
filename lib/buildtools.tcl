@@ -338,7 +338,7 @@ proc ::pkgtools::makedoc {{dir {}}} {
 		set destfile [file join docs man [file tail [file root $file]]].n
 		if {![file exists $destfile] || ([file mtime $file] > [file mtime $destfile])} {
 			puts "creating $destfile"
-			if {[catch {exec $tmml-man $file > $destfile} result]} {
+			if {[catch {exec ${tmml-man} $file > $destfile} result]} {
 				puts error:$result
 			}
 		}
