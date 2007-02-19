@@ -163,7 +163,7 @@ proc ::pkgtools::version {{argv {}}} {
 }	
 
 proc ::pkgtools::install {argv} {
-	global tcl_platform libfiles tbclibfiles shareddatafiles headers libbinaries binaries extname
+	global tcl_platform libfiles tbclibfiles shareddatafiles headers libbinaries binaries extname config
 	foreach v {libfiles tbclibfiles shareddatafiles headers libbinaries binaries} {
 		if {![info exists $v]} {set $v {}}
 	}
