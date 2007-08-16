@@ -16,13 +16,18 @@ proc ::pkgtools::findlib {dir name} {
 	} else {
 		set libpattern lib${name}\[0-9\]*[info sharedlibextension]
 	}
-	foreach libfile [list \
-		[file join $dir [pkgtools::architecture] $libpattern] \
-		[file join $dir build $libpattern] \
+	set list [list [file join $dir [pkgtools::architecture] $libpattern]]
+	if {[string equal $tcl_platform(platform) unix] && [regexp {^i|x.*86} $tcl_platform(machine)]} {
+		set os $tcl_platform(os)
+		foreach arch {x86* i*86} {
+			lappend list [file join $dir $os-$arch $libpattern]
+		}
+	}	
+	lappend list [file join $dir build $libpattern] \
 		[file join $dir win $libpattern] \
 		[file join $dir $libpattern] \
 		[file join $dir .. $libpattern]
-	] {
+	foreach libfile $list {
 		set libfile [lindex [glob -nocomplain $libfile] 0]
 		if [file exists $libfile] {break}
 	}
