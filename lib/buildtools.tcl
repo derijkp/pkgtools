@@ -72,7 +72,7 @@ proc ::pkgtools::version {{argv {}}} {
 	if {[info exists ::srcdir]} {
 		set srcdir $::srcdir
 	} else {
-		set srcdir [file normalize [file join [file dir [info script]] ..]]
+		set srcdir [file dir [pkgtools::startdir]]
 	}
 	if {[info exists version]} {
 		foreach {majorversion minorversion patchlevel} [split $version .] break
@@ -175,7 +175,7 @@ proc ::pkgtools::install {argv} {
 		if {[info exists ::srcdir]} {
 			set config(srcdir) $::srcdir
 		} else {
-			set config(srcdir) [file normalize [file join [file dir [info script]] ..]]
+			set config(srcdir) [file dir [pkgtools::startdir]]
 		}
 		set pkglibdir [file normalize [lindex $argv 0]]
 		if {[file isdir $pkglibdir]} {
