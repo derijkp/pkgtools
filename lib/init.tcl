@@ -21,6 +21,7 @@ set ::auto_index(::pkgtools::install) [list source [file join $::pkgtools::dir l
 set ::auto_index(::pkgtools::uninstall) [list source [file join $::pkgtools::dir lib buildtools.tcl]]
 set ::auto_index(::pkgtools::version) [list source [file join $::pkgtools::dir lib buildtools.tcl]]
 set ::auto_index(::pkgtools::makedoc) [list source [file join $::pkgtools::dir lib buildtools.tcl]]
+set ::auto_index(::pkgtools::tmml2html) [list source [file join $::pkgtools::dir lib buildtools.tcl]]
 
 proc pkgtools::startdir {} {
 	if {[info exists ::pkgtools::startdir]} {
