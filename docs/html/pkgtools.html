@@ -1,0 +1,101 @@
+
+
+
+<h2>DESCRIPTION</h2>
+<p>
+pkgtools is a small Tcl extension that bundles some commands that are
+useful when working with packages, mostly from a developers point of view.
+Several Tcl extensions/packages use and require pkgtools. If you just want
+to use one of these extensions, you only need to put a pkgtools "binary"
+somewhere Tcl can find it, and not care about the rest of this page.
+
+</p>
+
+
+
+<h2>PACKAGE INIT COMMANDS</h2>
+<p>
+A number of commands in pkgtools is used in the initializing of an extension
+</p>
+<dl>
+
+<dt><i>pkgtools::init</i> <b>dir</b> <b>name</b> <b>?testcmd?</b> <b>?noc_file?</b> <b>?packagename?</b></dt>
+<dd>
+This command will intialise an extension. It starts by searching the
+appropriate architecture specific compiled code for the current
+architecture in a number of possible directories starting from <b>dir</b>:
+e.g. an architecture subdirectory of <b>dir</b>, <b>dir</b> itself, the
+parent of <b>dir</b> (old convention). It uses <b>name</b> as a base of
+the file to be found, adding the correct sharedlibextension, etc. It then
+tries to dynamically load the library. If <b>testcmd</b> is given and not
+empty, it is used to check whether the library is already loaded: this is
+if the command <b>testcmd</b> already exists. If no compiled library could
+be found, the file given by <b>noc_file</b> is sourced for a Tcl-only
+fallback. A specific <b>packagename</b> can be given if needed to load the
+library.
+</dd>
+
+
+
+<dt><i>pkgtools::architecture</i></dt>
+<dd>
+Returns the architecture Tcl on which is currently running in the form platform-machine
+</dd>
+
+
+
+<dt><i>pkgtools::findlib</i> <b>dir</b> <b>name</b></dt>
+<dd>
+find the appropriate architecture specific compiled code for the current
+architecture in a number of possible directories starting from <b>dir</b>.
+It uses <b>name</b> as a base of the file to be found, adding the correct
+sharedlibextension, etc.
+</dd>
+
+
+</dl>
+
+
+
+<h2>PACKAGE BUILD COMMANDS</h2>
+<p>
+A number of commands in pkgtools is useful in building and installing a package
+</p>
+<dl>
+
+<dt><i>pkgtools::install</i> <b>installdir</b></dt>
+<dt><i>pkgtools::install</i> pkglibdir <b>pkglibdir</b> pkgtcllibdir <b>pkgtcllibdir</b> pkgdatadir <b>pkgdatadir</b> pkgincludedir <b>pkgincludedir</b> bindir <b>bindir</b> mandir <b>mandir</b></dt>
+<dd>
+This command makes it easy to create an installation script by providing a number of variables and calling the command:
+<pre>
+#!/bin/sh
+# the next line restarts using tclsh \
+exec tclsh "&#36;0" "&#36;@"
+
+package require pkgtools
+cd &#91;pkgtools::startdir&#93;
+
+# settings
+# --------
+
+set libfiles {lib README pkgIndex.tcl init.tcl DESCRIPTION.txt}
+set shareddatafiles README
+set headers {}
+set libbinaries &#91;::pkgtools::findlib &#91;file dir &#91;pkgtools::startdir&#93;&#93; Extral&#93;
+set binaries {}
+
+# standard
+# --------
+pkgtools::install &#36;argv
+</pre>
+</dd>
+
+
+<h2>KEYWORDS</h2><ul>
+<li>pkgtools</li>
+<li>package</li>
+<li>extension</li>
+</ul>
+
+
+

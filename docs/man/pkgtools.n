@@ -1,0 +1,82 @@
+'\"
+'\" Generated from docs/xml/pkgtools.xml
+'\"
+.so man.macros
+.TH pkgtools n "" pkgtools ""
+.BS
+.SH NAME
+pkgtools \- package initialization and building tools
+.BE
+.SH DESCRIPTION
+.PP
+pkgtools is a small Tcl extension that bundles some commands that are
+useful when working with packages, mostly from a developers point of view.
+Several Tcl extensions/packages use and require pkgtools. If you just want
+to use one of these extensions, you only need to put a pkgtools "binary"
+somewhere Tcl can find it, and not care about the rest of this page.
+.SH "PACKAGE INIT COMMANDS"
+.PP
+A number of commands in pkgtools is used in the initializing of an extension
+.TP
+\&\fB\fBpkgtools::init\fP \fIdir\fB \fIname\fB \fI?testcmd?\fB \fI?noc_file?\fB \fI?packagename?\fB
+\&\fR
+This command will intialise an extension. It starts by searching the
+appropriate architecture specific compiled code for the current
+architecture in a number of possible directories starting from \fIdir\fR:
+e.g. an architecture subdirectory of \fIdir\fR, \fIdir\fR itself, the
+parent of \fIdir\fR (old convention). It uses \fIname\fR as a base of
+the file to be found, adding the correct sharedlibextension, etc. It then
+tries to dynamically load the library. If \fItestcmd\fR is given and not
+empty, it is used to check whether the library is already loaded: this is
+if the command \fItestcmd\fR already exists. If no compiled library could
+be found, the file given by \fInoc_file\fR is sourced for a Tcl-only
+fallback. A specific \fIpackagename\fR can be given if needed to load the
+library.
+.TP
+\&\fB\fBpkgtools::architecture\fP
+\&\fR
+Returns the architecture Tcl on which is currently running in the form platform-machine
+.TP
+\&\fB\fBpkgtools::findlib\fP \fIdir\fB \fIname\fB
+\&\fR
+find the appropriate architecture specific compiled code for the current
+architecture in a number of possible directories starting from \fIdir\fR.
+It uses \fIname\fR as a base of the file to be found, adding the correct
+sharedlibextension, etc.
+.SH "PACKAGE BUILD COMMANDS"
+.PP
+A number of commands in pkgtools is useful in building and installing a package
+.TP
+\&\fB\fBpkgtools::install\fP \fIinstalldir\fB
+\&\fR
+.TP
+\&\fB\fBpkgtools::install\fP pkglibdir \fIpkglibdir\fB pkgtcllibdir \fIpkgtcllibdir\fB pkgdatadir \fIpkgdatadir\fB pkgincludedir \fIpkgincludedir\fB bindir \fIbindir\fB mandir \fImandir\fB
+\&\fR
+This command makes it easy to create an installation script by providing a number of variables and calling the command:
+
+.RS
+.CS
+
+#!/bin/sh
+# the next line restarts using tclsh \e
+exec tclsh "$0" "$@"
+
+package require pkgtools
+cd [pkgtools::startdir]
+
+# settings
+# --------
+
+set libfiles {lib README pkgIndex.tcl init.tcl DESCRIPTION.txt}
+set shareddatafiles README
+set headers {}
+set libbinaries [::pkgtools::findlib [file dir [pkgtools::startdir]] Extral]
+set binaries {}
+
+# standard
+# --------
+pkgtools::install $argv
+
+.CE
+.RE
+.SH KEYWORDS

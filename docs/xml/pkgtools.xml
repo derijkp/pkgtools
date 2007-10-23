@@ -1,0 +1,104 @@
+<manpage package="pkgtools" title="pkgtools" id="pkgtools" cat="cmd">
+<namesection>
+<name>pkgtools</name>
+<desc>package initialization and building tools</desc>
+</namesection>
+
+<section>
+<title>DESCRIPTION</title>
+<p>
+pkgtools is a small Tcl extension that bundles some commands that are
+useful when working with packages, mostly from a developers point of view.
+Several Tcl extensions/packages use and require pkgtools. If you just want
+to use one of these extensions, you only need to put a pkgtools "binary"
+somewhere Tcl can find it, and not care about the rest of this page.
+
+</p>
+</section>
+
+<section>
+<title>PACKAGE INIT COMMANDS</title>
+<p>
+A number of commands in pkgtools is used in the initializing of an extension
+</p>
+<commandlist>
+<commanddef>
+<command><cmd>pkgtools::init</cmd> <m>dir</m> <m>name</m> <m>?testcmd?</m> <m>?noc_file?</m> <m>?packagename?</m></command>
+<desc>
+This command will intialise an extension. It starts by searching the
+appropriate architecture specific compiled code for the current
+architecture in a number of possible directories starting from <m>dir</m>:
+e.g. an architecture subdirectory of <m>dir</m>, <m>dir</m> itself, the
+parent of <m>dir</m> (old convention). It uses <m>name</m> as a base of
+the file to be found, adding the correct sharedlibextension, etc. It then
+tries to dynamically load the library. If <m>testcmd</m> is given and not
+empty, it is used to check whether the library is already loaded: this is
+if the command <m>testcmd</m> already exists. If no compiled library could
+be found, the file given by <m>noc_file</m> is sourced for a Tcl-only
+fallback. A specific <m>packagename</m> can be given if needed to load the
+library.
+</desc>
+</commanddef>
+
+<commanddef>
+<command><cmd>pkgtools::architecture</cmd></command>
+<desc>
+Returns the architecture Tcl on which is currently running in the form platform-machine
+</desc>
+</commanddef>
+
+<commanddef>
+<command><cmd>pkgtools::findlib</cmd> <m>dir</m> <m>name</m></command>
+<desc>
+find the appropriate architecture specific compiled code for the current
+architecture in a number of possible directories starting from <m>dir</m>.
+It uses <m>name</m> as a base of the file to be found, adding the correct
+sharedlibextension, etc.
+</desc>
+</commanddef>
+
+</commandlist>
+</section>
+
+<section>
+<title>PACKAGE BUILD COMMANDS</title>
+<p>
+A number of commands in pkgtools is useful in building and installing a package
+</p>
+<commandlist>
+<commanddef>
+<command><cmd>pkgtools::install</cmd> <m>installdir</m></command>
+<command><cmd>pkgtools::install</cmd> pkglibdir <m>pkglibdir</m> pkgtcllibdir <m>pkgtcllibdir</m> pkgdatadir <m>pkgdatadir</m> pkgincludedir <m>pkgincludedir</m> bindir <m>bindir</m> mandir <m>mandir</m></command>
+<desc>
+This command makes it easy to create an installation script by providing a number of variables and calling the command:
+<example>
+#!/bin/sh
+# the next line restarts using tclsh \
+exec tclsh "&#36;0" "&#36;@"
+
+package require pkgtools
+cd &#91;pkgtools::startdir&#93;
+
+# settings
+# --------
+
+set libfiles {lib README pkgIndex.tcl init.tcl DESCRIPTION.txt}
+set shareddatafiles README
+set headers {}
+set libbinaries &#91;::pkgtools::findlib &#91;file dir &#91;pkgtools::startdir&#93;&#93; Extral&#93;
+set binaries {}
+
+# standard
+# --------
+pkgtools::install &#36;argv
+</example>
+</desc>
+</commanddef>
+
+<keywords>
+<keyword>pkgtools</keyword>
+<keyword>package</keyword>
+<keyword>extension</keyword>
+</keywords>
+
+</manpage>
