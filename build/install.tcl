@@ -8,12 +8,16 @@ if {"$tcl_platform(platform)"=="unix"} {
 		if {[catch {set script [file normalize [file readlink $script]]}]} break
 	}
 }
-lappend auto_path [file dir $script]
+set dir [file dir [file dir $script]]
+lappend auto_path $dir
+source $dir/lib/init.tcl
+
+package require pkgtools
+cd [pkgtools::startdir]
 
 # settings
 # --------
 
-set srcdir [file dir $script]
 set libfiles {lib init.tcl pkgIndex.tcl}
 set shareddatafiles {}
 set headers {}
