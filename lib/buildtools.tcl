@@ -66,8 +66,8 @@ proc ::pkgtools::file_write {file data} {
 proc ::pkgtools::version {{argv {}}} {
 	global tcl_platform libfiles shareddatafiles headers libbinaries binaries version
 	set len [llength $argv]
-	if {$len != 0} {
-		error "use:\nversion.tcl"
+	if {$len > 1} {
+		error "use:\nversion.tcl ?version?"
 	}
 	if {[info exists ::srcdir]} {
 		set srcdir $::srcdir
