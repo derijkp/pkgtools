@@ -1,7 +1,7 @@
 namespace eval pkgtools {}
 
 namespace eval pkgtools {
-	namespace export test testsummarize testleak testfloats
+	namespace export teststart test testfile testsummarize testleak testfloats
 }
 
 proc pkgtools::display {e} {
@@ -10,14 +10,16 @@ proc pkgtools::display {e} {
 
 proc pkgtools::logerror {group description errormessage} {
 	variable errors
+	variable currenttest
 	display $errormessage
-	lappend errors [list $group $description $errormessage]
+	lappend errors([get currenttest ""]) [list $group $description $errormessage]
 }
 
 proc pkgtools::logskip {group description condition} {
-	variable skipped
+	variable errors
+	variable currenttest
 	display "** skipped $group: $description ([lindex $condition 1])"
-	lappend skipped [list $group $description $condition]
+	lappend skipped([get currenttest ""]) [list $group $description $condition]
 }
 
 proc pkgtools::testleak {{number {}}} {
@@ -38,8 +40,6 @@ proc pkgtools::testfloats {list1 list2 {accuracy 1e-5}} {
 }
 
 proc pkgtools::test {group description script expected args} {
-	variable errors
-	variable skipped
 	variable testleak
 	upvar version version
 	upvar opt opt
@@ -105,30 +105,80 @@ proc pkgtools::test {group description script expected args} {
 	return
 }
 
+proc pkgtools::testfile {file} {
+	variable errors
+	variable currenttest
+	global env
+	if [info exists env(TCL_TEST_DIR)] {
+		cd $env(TCL_TEST_DIR)
+	}
+	set currenttest $file
+	puts "-----------------------------------------------------"
+	puts "Test file $file"
+	puts "-----------------------------------------------------"
+	set e [catch {uplevel #0 source $file} result]
+	if {$e} {
+		puts "error sourcing file $file: $result"
+		lappend errors($file) [list $file source "error sourcing file $file" $result]
+	}
+	unset currenttest
+}
+
+proc pkgtools::teststart {} {
+	variable errors
+	variable skipped
+	unset -nocomplain errors
+	unset -nocomplain skipped
+	set errors() {}
+}
+
 proc pkgtools::testsummarize {} {
 	variable errors
 	variable skipped
-	if [info exists errors] {
-		global currenttest
-		if [info exists currenttest] {
-			set error "***********************\nThere were errors in testfile $currenttest"
-		} else {
-			set error "***********************\nThere were errors in the tests"
+	variable currenttest
+	if {[info exists currenttest]} {
+		set skippednr [get skipped($currenttest) 0]
+		if {![info exists errors($currenttest)]} {
+			if {$skippednr} {
+				puts "All tests ok (skipped $skippednr)"
+			} else {
+				puts "All tests ok"
+			}
+			return {}
 		}
-		foreach line $errors {
+		set errorfiles $currenttest
+	} else {
+		set skippednr 0
+		foreach file [array names skipped] {incr skippednr $skipped($file)}
+		puts ****************************************
+		set errorfiles [array names errors]
+		if {![llength [get errors() ""]] && ([llength $errorfiles] <= 1)} {
+			if {$skippednr} {
+				puts "All tests ok (skipped $skippednr)"
+			} else {
+				puts "All tests ok"
+			}
+			return {}
+		}
+	}
+	set result ""
+	foreach file $errorfiles {
+		if {![llength $errors($file)]} continue
+		if {$file ne ""} {
+			set error "----------------------------------------\nThere were errors in testfile $file"
+		} else {
+			set error "----------------------------------------\nThere were errors in the tests"
+		}
+		foreach line $errors($file) {
 			foreach {group descr errormessage} $line break
 			append error "\n$group: $descr  ----------------------------"
 			append error "\n$errormessage"
 		}
 		# display $error
-		if {[info exists skipped]} {
-			append error "\n***********************\nskipped [llength $skipped]"
-		}
-		return -code error $error
-	} elseif {[info exists skipped]} {
-		set result "All tests ok (skipped [llength $skipped])"
-	} else {
-		set result "All tests ok"
+		append result $error\n
+	}
+	if {$skippednr} {
+		append result "Skipped $skippednr tests"
 	}
 	puts $result
 	return $result
