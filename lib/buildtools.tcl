@@ -321,9 +321,7 @@ proc ::pkgtools::tmml2html {src dst} {
 		<optlist> <dl> </optlist> </dl> <optdef> {} </optdef> {}
 		<optname> <dt><b> </optname> {</b> } <optarg> {} </optarg> </dt>
 		<method> <i> </method> </i> <example> <pre> </example> </pre>
-		$ \\$ \[ \\\[ \] \\\]
 	} $data]
-#	set data "\[header \"$title\"\]$data\[footer\]"
 	set f [open $dst w]
 	puts $f $data
 	close $f

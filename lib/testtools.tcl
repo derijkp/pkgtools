@@ -158,7 +158,11 @@ proc pkgtools::testsummarize {} {
 			} else {
 				puts "All tests ok"
 			}
-			return {}
+			if {[llength [info commands ::tk::button]]} {
+				exit
+			} else {
+				return {}
+			}
 		}
 	}
 	set result ""
@@ -181,5 +185,10 @@ proc pkgtools::testsummarize {} {
 		append result "Skipped $skippednr tests"
 	}
 	puts $result
-	return $result
+	if {![info exists currenttest] && [llength [info commands ::tk::button]]} {
+		exit
+	} else {
+		return $result
+	}
 }
+
