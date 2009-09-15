@@ -66,7 +66,9 @@ proc ::pkgtools::file_write {file data} {
 proc ::pkgtools::version {{argv {}}} {
 	global tcl_platform libfiles shareddatafiles headers libbinaries binaries version
 	set len [llength $argv]
-	if {$len > 1} {
+	if {$len == 1} {
+		set version [lindex $argv 0]
+	} elseif {$len > 1} {
 		error "use:\nversion.tcl ?version?"
 	}
 	if {[info exists ::srcdir]} {
@@ -93,6 +95,12 @@ proc ::pkgtools::version {{argv {}}} {
 		close $f
 		regexp {provide +[^ \n]+ +([0-9.]+)} $c temp v
 		foreach {majorversion minorversion patchlevel} [split $v .] break
+	} elseif {[file exists $srcdir/version.txt]} {
+		set f [open $srcdir/version.txt]
+		set c [read $f]
+		close $f
+		set c [string trim $c]
+		foreach {majorversion minorversion patchlevel} [split $c .] break
 	} else {
 		error "no configure.in or init.tcl found in $srcdir"
 	}
