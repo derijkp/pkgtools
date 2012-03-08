@@ -1,7 +1,11 @@
 namespace eval pkgtools {}
+catch {package require platform}
 
 proc pkgtools::architecture {} {
 	global tcl_platform
+	if {![catch {platform::generic} result]} {
+		return $result
+	}
 	if {[string equal $tcl_platform(platform) unix]} {
 		return $tcl_platform(os)-$tcl_platform(machine)
 	} else {
@@ -16,22 +20,33 @@ proc ::pkgtools::findlib {dir name} {
 	} else {
 		set libpattern lib${name}\[0-9\]*[info sharedlibextension]
 	}
-	set list [list [file join $dir [pkgtools::architecture] $libpattern]]
-	if {[string equal $tcl_platform(platform) unix] && [regexp {^i|x.*86} $tcl_platform(machine)]} {
-		set os $tcl_platform(os)
-		foreach arch {x86* i*86} {
-			lappend list [file join $dir $os-$arch $libpattern]
+	set libfile [file join $dir [pkgtools::architecture] $libpattern]
+	set libfile [lindex [glob -nocomplain $libfile] 0]
+	if {[file exists $libfile]} {return $libfile}
+	if {([string equal $tcl_platform(platform) unix] || [string equal $tcl_platform(platform) windows])
+	    && ([regexp {^i|x.*86} $tcl_platform(machine)] || "$tcl_platform(machine)" == "intel")} {
+		set oss [list $tcl_platform(os) [string tolower $tcl_platform(os)]]
+		if {$tcl_platform(wordSize) == 4} {
+			set order {i*86 x86*}
+		} else {
+			set order {x86* i*86}
 		}
-	}	
-	lappend list [file join $dir build $libpattern] \
+		foreach os $oss {
+			foreach arch $order {
+				set libfile [file join $dir $os-$arch $libpattern]
+				set libfile [lindex [glob -nocomplain $libfile] 0]
+				if {[file exists $libfile]} {return $libfile}
+			}
+		}
+	}
+	foreach libfile [list [file join $dir build $libpattern] \
 		[file join $dir win $libpattern] \
 		[file join $dir $libpattern] \
-		[file join $dir .. $libpattern]
-	foreach libfile $list {
+		[file join $dir .. $libpattern]] {
 		set libfile [lindex [glob -nocomplain $libfile] 0]
-		if [file exists $libfile] {break}
+		if {[file exists $libfile]} {return $libfile}
 	}
-	return $libfile
+	return {}
 }
 
 proc ::pkgtools::init {dir name {testcmd {}} {noc_file {}} {packagename {}}} {
