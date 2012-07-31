@@ -81,7 +81,7 @@ proc pkgtools::test {group description script expected args} {
 		set compar [string match $expected $result]
 		set errorbetween {should match}
 	} else {
-		set compar [expr {"$result"=="$expected"}]
+		set compar [expr {"$result" eq "$expected"}]
 		set errorbetween {should be}
 	}
 	if {!$compar} {
