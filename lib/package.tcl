@@ -6,7 +6,19 @@ proc pkgtools::architecture {} {
 	if {![catch {platform::generic} result]} {
 		return $result
 	}
-	if {[string equal $tcl_platform(platform) unix]} {
+	if {([string equal $tcl_platform(platform) unix] || [string equal $tcl_platform(platform) windows])
+	    && ([regexp {^i|x.*86} $tcl_platform(machine)] || "$tcl_platform(machine)" == "intel")} {
+		if {[string equal $tcl_platform(platform) windows]} {
+			set os windows
+		} else {
+			set os [string tolower $tcl_platform(os)]
+		}
+		if {$tcl_platform(wordSize) == 4} {
+			return $os-i686
+		} else {
+			return $os-x86_64
+		}
+	} elseif {[string equal $tcl_platform(platform) unix]} {
 		return $tcl_platform(os)-$tcl_platform(machine)
 	} else {
 		return $tcl_platform(platform)-$tcl_platform(machine)
@@ -26,7 +38,7 @@ proc ::pkgtools::findlib {dir name} {
 	if {([string equal $tcl_platform(platform) unix] || [string equal $tcl_platform(platform) windows])
 	    && ([regexp {^i|x.*86} $tcl_platform(machine)] || "$tcl_platform(machine)" == "intel")} {
 		if {[string equal $tcl_platform(platform) windows]} {
-			set oss {windows win}
+			set oss {windows win win32}
 		} else {
 			set oss [list $tcl_platform(os) [string tolower $tcl_platform(os)]]
 		}
