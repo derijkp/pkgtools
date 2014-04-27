@@ -28,13 +28,15 @@ proc pkgtools::architecture {} {
 proc ::pkgtools::findlib {dir name} {
 	global tcl_platform noc
 	if {"$tcl_platform(platform)" == "windows"} {
-		set libpattern \{lib,\}$name\[0-9\]*[info sharedlibextension]
+		set libpatterns [list \{lib,\}$name\[0-9.\]*[info sharedlibextension] \{lib,\}$name[info sharedlibextension]]
 	} else {
-		set libpattern lib${name}\[0-9\]*[info sharedlibextension]
+		set libpatterns [list lib${name}\[0-9.\]*[info sharedlibextension] lib${name}[info sharedlibextension]]
 	}
-	set libfile [file join $dir [pkgtools::architecture] $libpattern]
-	set libfile [lindex [glob -nocomplain $libfile] 0]
-	if {[file exists $libfile]} {return $libfile}
+	foreach libpattern $libpatterns {
+		set libfile [file join $dir [pkgtools::architecture] $libpattern]
+		set libfile [lindex [glob -nocomplain $libfile] 0]
+		if {[file exists $libfile]} {return $libfile}
+	}
 	if {([string equal $tcl_platform(platform) unix] || [string equal $tcl_platform(platform) windows])
 	    && ([regexp {^i|x.*86} $tcl_platform(machine)] || "$tcl_platform(machine)" == "intel")} {
 		if {[string equal $tcl_platform(platform) windows]} {
@@ -49,18 +51,22 @@ proc ::pkgtools::findlib {dir name} {
 		}
 		foreach os $oss {
 			foreach arch $order {
-				set libfile [file join $dir $os-$arch $libpattern]
-				set libfile [lindex [glob -nocomplain $libfile] 0]
-				if {[file exists $libfile]} {return $libfile}
+				foreach libpattern $libpatterns {
+					set libfile [file join $dir $os-$arch $libpattern]
+					set libfile [lindex [glob -nocomplain $libfile] 0]
+					if {[file exists $libfile]} {return $libfile}
+				}
 			}
 		}
 	}
-	foreach libfile [list [file join $dir build $libpattern] \
-		[file join $dir win $libpattern] \
-		[file join $dir $libpattern] \
-		[file join $dir .. $libpattern]] {
-		set libfile [lindex [glob -nocomplain $libfile] 0]
-		if {[file exists $libfile]} {return $libfile}
+	foreach libfile [list [file join $dir build] \
+		[file join $dir win] \
+		$dir \
+		[file join $dir ..]] {
+			foreach libpattern $libpatterns {
+				set libfile [lindex [glob -nocomplain [file join $libfile $libpattern]] 0]
+				if {[file exists $libfile]} {return $libfile}
+			}
 	}
 	return {}
 }

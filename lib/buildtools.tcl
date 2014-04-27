@@ -77,8 +77,11 @@ proc ::pkgtools::version {{argv {}}} {
 		set srcdir [file dir [pkgtools::startdir]]
 	}
 	if {[info exists version]} {
+		puts "version: Using env var"
 		foreach {majorversion minorversion patchlevel} [split $version .] break
-	} elseif {[file exists $srcdir/configure.in]} {
+	}
+	if {![info exists majorversion] && [file exists $srcdir/configure.in]} {
+		puts "version: Using $srcdir/configure.in"
 		set f [open $srcdir/configure.in]
 		set c [read $f]
 		close $f
@@ -89,20 +92,35 @@ proc ::pkgtools::version {{argv {}}} {
 		} else {
 			regexp {AC_INIT\(\[.*\], *\[([^.]+)\.([^.]+)\.([^.]+)\]\)} $c temp majorversion minorversion patchlevel
 		}
-	} elseif {[file exists $srcdir/init.tcl]} {
+	}
+	if {![info exists majorversion] && [file exists $srcdir/init.tcl]} {
+		puts "version: Using $srcdir/init.tcl"
 		set f [open $srcdir/init.tcl]
 		set c [read $f]
 		close $f
-		regexp {provide +[^ \n]+ +([0-9.]+)} $c temp v
-		foreach {majorversion minorversion patchlevel} [split $v .] break
-	} elseif {[file exists $srcdir/version.txt]} {
+		if {[regexp {provide +[^ \n]+ +([0-9.]+)} $c temp v]} {
+			foreach {majorversion minorversion patchlevel} [split $v .] break
+		}
+	}
+	if {![info exists majorversion] && [file exists $srcdir/lib/version.tcl]} {
+		puts "version: Using $srcdir/lib/version"
+		set f [open $srcdir/lib/version.tcl]
+		set c [read $f]
+		close $f
+		if {[regexp {provide +[^ \n]+ +([0-9.]+)} $c temp v]} {
+			foreach {majorversion minorversion patchlevel} [split $v .] break
+		}
+	}
+	if {![info exists majorversion] && [file exists $srcdir/version.txt]} {
+		puts "version: Using $srcdir/version.txt"
 		set f [open $srcdir/version.txt]
 		set c [read $f]
 		close $f
 		set c [string trim $c]
 		foreach {majorversion minorversion patchlevel} [split $c .] break
-	} else {
-		error "no configure.in or init.tcl found in $srcdir"
+	}
+	if {![info exists majorversion]} {
+		error "no configure.in, init.tcl, version.txt or lib/version.tcl found in $srcdir"
 	}
 	if {$patchlevel ne ""} {
 		set version $majorversion.$minorversion.$patchlevel
