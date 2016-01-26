@@ -40,7 +40,53 @@ proc ::pkgtools::findlib {dir name} {
 	if {([string equal $tcl_platform(platform) unix] || [string equal $tcl_platform(platform) windows])
 	    && ([regexp {^i|x.*86} $tcl_platform(machine)] || "$tcl_platform(machine)" == "intel")} {
 		if {[string equal $tcl_platform(platform) windows]} {
-			set oss {windows win win32}
+			set oss {Windows windows win win32}
+		} else {
+			set oss [list $tcl_platform(os) [string tolower $tcl_platform(os)]]
+		}
+		if {$tcl_platform(wordSize) == 4} {
+			set order {i*86 x86* intel}
+		} else {
+			set order {x86* i*86 intel}
+		}
+		foreach os $oss {
+			foreach arch $order {
+				foreach libpattern $libpatterns {
+					set libfile [file join $dir $os-$arch $libpattern]
+					set libfile [lindex [glob -nocomplain $libfile] 0]
+					if {[file exists $libfile]} {return $libfile}
+				}
+			}
+		}
+	}
+	foreach libfile [list [file join $dir build] \
+		[file join $dir win] \
+		$dir \
+		[file join $dir ..]] {
+			foreach libpattern $libpatterns {
+				set libfile [lindex [glob -nocomplain [file join $libfile $libpattern]] 0]
+				if {[file exists $libfile]} {return $libfile}
+			}
+	}
+	return {}
+}
+
+proc ::pkgtools::findexe {dir name} {
+	global tcl_platform noc
+	if {"$tcl_platform(platform)" == "windows"} {
+		set libpatterns [list $name.exe $name\[0-9.\]*.exe]
+	} else {
+		set libpatterns [list $name ${name}\[0-9.\]*]
+	}
+	foreach libpattern $libpatterns {
+		set libfile [file join $dir [pkgtools::architecture] $libpattern]
+		set libfile [lindex [glob -nocomplain $libfile] 0]
+		if {[file exists $libfile]} {return $libfile}
+	}
+	if {([string equal $tcl_platform(platform) unix] || [string equal $tcl_platform(platform) windows])
+	    && ([regexp {^i|x.*86} $tcl_platform(machine)] || "$tcl_platform(machine)" == "intel")} {
+		if {[string equal $tcl_platform(platform) windows]} {
+			set oss {Windows windows win win32}
 		} else {
 			set oss [list $tcl_platform(os) [string tolower $tcl_platform(os)]]
 		}
