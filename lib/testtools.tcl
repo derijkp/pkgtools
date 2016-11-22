@@ -59,7 +59,9 @@ proc pkgtools::test {group description script expected args} {
 	if {![info exists ::env(TCL_TEST_ONLYERRORS)]} {display $e}
 	append code $script
 	namespace eval :: [list proc _pkgtools__tools__try {} $script]
+	set keeppwd [pwd]
 	set error [catch {_pkgtools__tools__try} result]
+	cd $keeppwd
 	if {$causeerror} {
 		if {!$error} {
 			if {[info exists ::env(TCL_TEST_ONLYERRORS)]} {display "-- test $group: $description --"}
@@ -90,7 +92,9 @@ proc pkgtools::test {group description script expected args} {
 	}
 	if {$testleak} {
 		set line1 [lindex [split [exec ps l [pid]] "\n"] 1]
+		set keeppwd [pwd]
 		time {set error [catch {tools__try $object} result]} $testleak
+		cd $keeppwd
 		set line2 [lindex [split [exec ps l [pid]] "\n"] 1]
 		if {([lindex $line1 6] != [lindex $line2 6])||([lindex $line1 7] != [lindex $line2 7])} {
 			if {![info exists options(noleak)]} {
