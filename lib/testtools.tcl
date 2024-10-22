@@ -8,6 +8,11 @@ proc pkgtools::display {e} {
 	puts $e
 }
 
+proc pkgtools::displaynn {e} {
+	puts -nonewline $e
+	flush stdout
+}
+
 proc pkgtools::logerror {group description errormessage} {
 	variable errors
 	variable currenttest
@@ -56,11 +61,14 @@ proc pkgtools::test {group description script expected args} {
 	}
 	if {[info exists options(error)]} {set causeerror 1} else {set causeerror 0}
 	set e "testing $group: $description"
-	if {![info exists ::env(TCL_TEST_ONLYERRORS)]} {display $e}
+	if {![info exists ::env(TCL_TEST_ONLYERRORS)]} {displaynn $e}
 	append code $script
 	namespace eval :: [list proc _pkgtools__tools__try {} $script]
 	set keeppwd [pwd]
-	set error [catch {_pkgtools__tools__try} result]
+	set time [time {
+		set error [catch {_pkgtools__tools__try} result]
+	}]
+	if {![info exists ::env(TCL_TEST_ONLYERRORS)]} {display " ([format %.4f [expr [lindex $time 0]/1000000.0]] sec)"}
 	cd $keeppwd
 	if {$causeerror} {
 		if {!$error} {
@@ -181,6 +189,18 @@ proc pkgtools::testsummarize {} {
 			foreach {group descr errormessage} $line break
 			append error "\n$group: $descr  ----------------------------"
 			append error "\n$errormessage"
+		}
+		# display $error
+		append result $error\n
+	}
+	if {[llength $errorfiles]} {
+		append error "---------- overview tests with errors ----------"
+	}
+	foreach file $errorfiles {
+		if {![llength $errors($file)]} continue
+		foreach line $errors($file) {
+			foreach {group descr errormessage} $line break
+			append error "\n$file\t$group\t$descr"
 		}
 		# display $error
 		append result $error\n
