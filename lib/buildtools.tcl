@@ -265,7 +265,6 @@ proc ::pkgtools::install {argv} {
 	if {[llength $libbinaries]} {
 		set dir $config(pkglibdir)/[pkgtools::architecture]
 		file mkdir $dir
-puts "$libbinaries $dir"
 		foreach binary $libbinaries {
 			if {[file exists $binary]} {
 				copy $binary $dir
